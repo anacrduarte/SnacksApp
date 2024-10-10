@@ -135,6 +135,33 @@ namespace SnacksApp.Services
             string endpoint = $"api/products/{productId}";
             return await GetAsync<Product>(endpoint);
         }
+
+        public async Task<ApiResponse<bool>> AddItemShoppingCart(CartItem cartItem)
+        {
+            try
+            {
+                var json = JsonSerializer.Serialize(cartItem, _serializerOptions);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+                var response = await PostRequest("api/CartItems", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"Erro ao enviar requisição HTTP: {response.StatusCode}");
+                    return new ApiResponse<bool>
+                    {
+                        ErrorMessage = $"Erro ao enviar requisição HTTP: {response.StatusCode}"
+                    };
+                }
+
+                return new ApiResponse<bool> { Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Erro ao adicionar item no carrinho: {ex.Message}");
+                return new ApiResponse<bool> { ErrorMessage = ex.Message };
+            }
+        }
         private async Task<(T? Data, string? ErrorMessage)> GetAsync<T>(string endpoint)
         {
             try

@@ -130,7 +130,11 @@ namespace SnacksApp.Services
             return await GetAsync<List<Product>>(endpoint);
         }
 
-
+        public async Task<(Product? ProductDetails, string? ErrorMessage)> GetProductDetails(int productId)
+        {
+            string endpoint = $"api/products/{productId}";
+            return await GetAsync<Product>(endpoint);
+        }
         private async Task<(T? Data, string? ErrorMessage)> GetAsync<T>(string endpoint)
         {
             try

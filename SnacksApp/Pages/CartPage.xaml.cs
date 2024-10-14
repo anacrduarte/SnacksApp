@@ -10,6 +10,7 @@ public partial class CartPage : ContentPage
     private bool _loginPageDisplayed = false;
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
+    private bool _isNavigatingToEmptyCartPage = false;
 
     private ObservableCollection<ShoppingCartItem> ShoppingCartItems = new ObservableCollection<ShoppingCartItem>();
 
@@ -25,24 +26,64 @@ public partial class CartPage : ContentPage
     {
         base.OnAppearing();
         await GetShoppingCartItem();
+
+        bool addressSave = Preferences.ContainsKey("address");
+
+        if (addressSave)
+        {
+            string name = Preferences.Get("name", string.Empty);
+            string address = Preferences.Get("address", string.Empty);
+            string phoneNumber = Preferences.Get("phonenumber", string.Empty);
+
+            LblAddress.Text = $"{name}\n {address}\n{phoneNumber}";
+        }
+        else
+        {
+            LblAddress.Text = "Informe a sua morada.";
+        }
     }
-    private void BtnDecrease_Clicked(object sender, EventArgs e)
+    private async void BtnDecrease_Clicked(object sender, EventArgs e)
     {
-
+        if (sender is Button button && button.BindingContext is ShoppingCartItem itemCart)
+        {
+            if (itemCart.Quantity == 1) return;
+            else
+            {
+                itemCart.Quantity--;
+                UpdateTotalPrice();
+                await _apiService.UpdateShoppingCartItemQuantity(itemCart.ProductId, "diminuir");
+            }
+        }
     }
 
-    private void BtnIncrease_Clicked(object sender, EventArgs e)
+    private async void BtnIncrease_Clicked(object sender, EventArgs e)
     {
-
+        if (sender is Button button && button.BindingContext is ShoppingCartItem itemCart)
+        {
+            itemCart.Quantity++;
+            UpdateTotalPrice();
+            await _apiService.UpdateShoppingCartItemQuantity(itemCart.ProductId, "aumentar");
+        }
     }
 
-    private void BtnDelete_Clicked(object sender, EventArgs e)
+    private async void BtnDelete_Clicked(object sender, EventArgs e)
     {
-
+        if (sender is ImageButton button && button.BindingContext is ShoppingCartItem itemCart)
+        {
+            bool response = await DisplayAlert("Confirma  o",
+                          "Tem certeza que deseja excluir este item do carrinho?", "Sim", "N o");
+            if (response)
+            {
+                ShoppingCartItems.Remove(itemCart);
+                UpdateTotalPrice();
+                await _apiService.UpdateShoppingCartItemQuantity(itemCart.ProductId, "deletar");
+            }
+        }
     }
 
     private void BtnEditAddress_Clicked(object sender, EventArgs e)
     {
+        Navigation.PushAsync(new AddressPage());
 
     }
 
@@ -79,7 +120,7 @@ public partial class CartPage : ContentPage
             }
 
             CvShoppingCart.ItemsSource = ShoppingCartItems;
-            AtualizaPrecoTotal(); // Atualizar o preco total ap?s atualizar os itens do carrinho
+            UpdateTotalPrice(); // Atualizar o preco total ap?s atualizar os itens do carrinho
 
             if (!ShoppingCartItems.Any())
             {
@@ -94,7 +135,7 @@ public partial class CartPage : ContentPage
         }
     }
 
-    private void AtualizaPrecoTotal()
+    private void UpdateTotalPrice()
     {
         try
         {

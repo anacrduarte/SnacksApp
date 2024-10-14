@@ -162,6 +162,12 @@ namespace SnacksApp.Services
                 return new ApiResponse<bool> { ErrorMessage = ex.Message };
             }
         }
+
+        public async Task<(List<ShoppingCartItem>? ShoppingCartItems, string? ErrorMessage)> GetShoppingCartItems(int userId)
+        {
+            var endpoint = $"api/CartItems/{userId}";
+            return await GetAsync<List<ShoppingCartItem>>(endpoint);
+        }
         private async Task<(T? Data, string? ErrorMessage)> GetAsync<T>(string endpoint)
         {
             try

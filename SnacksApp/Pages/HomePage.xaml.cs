@@ -21,6 +21,25 @@ public partial class HomePage : ContentPage
 
     }
 
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+        if (!_isDataLoaded)
+        {
+            await LoadDataAsync();
+            _isDataLoaded = true;
+        }
+    }
+
+    private async Task LoadDataAsync()
+    {
+        var categoriasTask = GetListCategories();
+        var maisVendidosTask = GetBestSelling();
+        var popularesTask = GetPopular();
+
+        await Task.WhenAll(categoriasTask, maisVendidosTask, popularesTask);
+    }
+
     private void CvBestSellers_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (sender is CollectionView collectionView)
@@ -67,13 +86,7 @@ public partial class HomePage : ContentPage
         ((CollectionView)sender).SelectedItem = null;
     }
 
-    protected override async void OnAppearing()
-    {
-        base.OnAppearing();
-        await GetListCategories();
-        await GetBestSelling();
-        await GetPopular();
-    }
+
 
     private async Task<IEnumerable<Category>> GetListCategories()
     {

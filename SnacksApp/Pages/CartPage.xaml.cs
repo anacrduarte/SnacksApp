@@ -2,6 +2,7 @@ using SnacksApp.Models;
 using SnacksApp.Services;
 using SnacksApp.Validations;
 using System.Collections.ObjectModel;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace SnacksApp.Pages;
 
@@ -25,11 +26,38 @@ public partial class CartPage : ContentPage
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-        await GetShoppingCartItem();
+        
 
-        bool addressSave = Preferences.ContainsKey("address");
+        if (IsNavigatingToEmptyCartPage()) return;
 
-        if (addressSave)
+        bool hasItems = await GetShoppingCartItem();
+
+        if (hasItems)
+        {
+            DisplayAddress();
+        }
+        else
+        {
+            await NavigateToEmptyCart();
+        }
+
+    }
+
+
+    private bool IsNavigatingToEmptyCartPage()
+    {
+        if (_isNavigatingToEmptyCartPage)
+        {
+            _isNavigatingToEmptyCartPage = false;
+            return true;
+        }
+        return false;
+    }
+    private void DisplayAddress()
+    {
+        bool saveAddress = Preferences.ContainsKey("address");
+
+        if (saveAddress)
         {
             string name = Preferences.Get("name", string.Empty);
             string address = Preferences.Get("address", string.Empty);
@@ -39,9 +67,17 @@ public partial class CartPage : ContentPage
         }
         else
         {
-            LblAddress.Text = "Informe a sua morada.";
+             LblAddress.Text = "Informe a sua morada.";
         }
     }
+
+    private async Task NavigateToEmptyCart()
+    {
+        LblAddress.Text = string.Empty;
+        _isNavigatingToEmptyCartPage = true;
+        await Navigation.PushAsync(new EmptyCartPage());
+    }
+
     private async void BtnDecrease_Clicked(object sender, EventArgs e)
     {
         if (sender is Button button && button.BindingContext is ShoppingCartItem itemCart)
@@ -70,8 +106,8 @@ public partial class CartPage : ContentPage
     {
         if (sender is ImageButton button && button.BindingContext is ShoppingCartItem itemCart)
         {
-            bool response = await DisplayAlert("Confirma  o",
-                          "Tem certeza que deseja excluir este item do carrinho?", "Sim", "N o");
+            bool response = await DisplayAlert("Confirmar",
+                          "Tem certeza que deseja excluir este item do carrinho?", "Sim", "Não");
             if (response)
             {
                 ShoppingCartItems.Remove(itemCart);
@@ -87,8 +123,41 @@ public partial class CartPage : ContentPage
 
     }
 
-    private void TapConfirmOrder_Tapped(object sender, TappedEventArgs e)
+    private async void TapConfirmOrder_Tapped(object sender, TappedEventArgs e)
     {
+        if (ShoppingCartItems == null || !ShoppingCartItems.Any())
+        {
+            await DisplayAlert("Informação", "Seu carrinho está vazio ou o pedido já foi confirmado.", "OK");
+            return;
+        }
+
+        var order = new Order()
+        {
+            Adress = LblAddress.Text,
+            UserId = Preferences.Get("userid", 0),
+            TotalValue = Convert.ToDecimal(LblTotalPrice.Text)
+        };
+
+        var response = await _apiService.ConfirmOrder(order);
+
+        if (response.HasError)
+        {
+            if (response.ErrorMessage == "Unauthorized")
+            {
+                // Redirecionar para a p gina de login
+                await DisplayLoginPage();
+                return;
+            }
+            await DisplayAlert("Opa !!!", $"Algo deu errado: {response.ErrorMessage}", "Cancelar");
+            return;
+        }
+
+        ShoppingCartItems.Clear();
+        LblAddress.Text = "Informe o seu endereço";
+       LblTotalPrice.Text = "0.00";
+
+        await Navigation.PushAsync(new ConfirmedOrderPage());
+
 
     }
 

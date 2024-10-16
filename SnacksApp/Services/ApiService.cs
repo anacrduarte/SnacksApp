@@ -324,6 +324,21 @@ namespace SnacksApp.Services
             }
         }
 
+        public async Task<(List<OrdersPerUser>?, string? ErrorMessage)> GetOrderPerUser(int userId)
+        {
+
+            string endpoint = $"api/orders/PedidosPorUsuario/{userId}";
+
+            return await GetAsync<List<OrdersPerUser>>(endpoint);
+        }
+
+        public async Task<(List<OrderDetails>?, string? ErrorMessage)> GetOrderDetails(int orderId)
+        {
+            string endpoint = $"api/orders/orderdetails/{orderId}";
+
+            return await GetAsync<List<OrderDetails>>(endpoint);
+        }
+
         private async Task<HttpResponseMessage> PostRequest(string uri, HttpContent content)
         {
             var enderecoUrl = AppConfig.BaseUrl + uri;

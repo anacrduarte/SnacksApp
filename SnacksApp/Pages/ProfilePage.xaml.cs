@@ -118,7 +118,7 @@ public partial class ProfilePage : ContentPage
 
     private void TapOrders_Tapped(object sender, TappedEventArgs e)
     {
-
+        Navigation.PushAsync(new OrdersPage(_apiService, _validator, _favoriteService));
     }
 
     private void MyAccount_Tapped(object sender, TappedEventArgs e)

@@ -8,14 +8,14 @@ public partial class OrdersPage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
-    private readonly FavoriteService _favoriteService;
+
     private bool _loginPageDisplayed = false;
-    public OrdersPage(ApiService apiService, IValidator validator, FavoriteService favoriteService)
+    public OrdersPage(ApiService apiService, IValidator validator)
     {
         InitializeComponent();
         _apiService = apiService;
         _validator = validator;
-        _favoriteService = favoriteService;
+
     }
     protected override async void OnAppearing()
     {
@@ -27,6 +27,8 @@ public partial class OrdersPage : ContentPage
     {
         try
         {
+            loadIndicator.IsRunning = true;
+            loadIndicator.IsVisible = true;
             var (orders, errorMessage) = await _apiService.GetOrderPerUser(Preferences.Get("userid", 0));
 
             if (errorMessage == "Unauthorized" && !_loginPageDisplayed)
@@ -53,6 +55,12 @@ public partial class OrdersPage : ContentPage
         {
             await DisplayAlert("Erro", "Ocorreu um erro ao obter os pedidos. Tente novamente mais tarde.", "OK");
         }
+        finally
+        {
+            // Esconde o indicador de carregamento
+            loadIndicator.IsRunning = false;
+            loadIndicator.IsVisible = false;
+        }
     }
 
 
@@ -66,7 +74,7 @@ public partial class OrdersPage : ContentPage
         Navigation.PushAsync(new OrderDetailsPage(selectedItem.Id,
                                                     selectedItem.TotalValue,
                                                     _apiService,
-                                                    _validator, _favoriteService));
+                                                    _validator));
 
         ((CollectionView)sender).SelectedItem = null;
 
@@ -76,6 +84,6 @@ public partial class OrdersPage : ContentPage
     private async Task DisplayLoginPage()
     {
         _loginPageDisplayed = true;
-        await Navigation.PushAsync(new LoginPage(_apiService, _validator, _favoriteService));
+        await Navigation.PushAsync(new LoginPage(_apiService, _validator));
     }
 }

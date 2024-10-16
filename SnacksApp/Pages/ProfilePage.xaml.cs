@@ -7,15 +7,15 @@ public partial class ProfilePage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
-    private readonly FavoriteService _favoriteService;
+
     private bool _loginPageDisplayed = false;
-    public ProfilePage(ApiService apiService, IValidator validator, FavoriteService favoriteService)
+    public ProfilePage(ApiService apiService, IValidator validator)
     {
         InitializeComponent();
         LblUserName.Text = Preferences.Get("username", string.Empty);
         _apiService = apiService;
         _validator = validator;
-        _favoriteService = favoriteService;
+
     }
     protected override async void OnAppearing()
     {
@@ -118,7 +118,7 @@ public partial class ProfilePage : ContentPage
 
     private void TapOrders_Tapped(object sender, TappedEventArgs e)
     {
-        Navigation.PushAsync(new OrdersPage(_apiService, _validator, _favoriteService));
+        Navigation.PushAsync(new OrdersPage(_apiService, _validator));
     }
 
     private void MyAccount_Tapped(object sender, TappedEventArgs e)
@@ -134,12 +134,12 @@ public partial class ProfilePage : ContentPage
     private void BtnLogout_Clicked(object sender, EventArgs e)
     {
         Preferences.Set("accesstoken", string.Empty);
-        Application.Current!.MainPage = new NavigationPage(new LoginPage(_apiService, _validator, _favoriteService));
+        Application.Current!.MainPage = new NavigationPage(new LoginPage(_apiService, _validator));
     }
 
     private async Task DisplayLoginPage()
     {
         _loginPageDisplayed = true;
-        await Navigation.PushAsync(new LoginPage(_apiService, _validator, _favoriteService));
+        await Navigation.PushAsync(new LoginPage(_apiService, _validator));
     }
 }

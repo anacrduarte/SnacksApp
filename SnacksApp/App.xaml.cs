@@ -8,7 +8,7 @@ namespace SnacksApp
     {
         private readonly ApiService _apiService;
         private readonly IValidator _validator;
-        private readonly FavoriteService _favoriteService;
+
 
         public App(ApiService apiService, IValidator validator, FavoriteService favoriteService)
         {
@@ -17,7 +17,7 @@ namespace SnacksApp
            
             _apiService = apiService;
             _validator = validator;
-           _favoriteService = favoriteService;
+
             SetMainPage();
         }
 
@@ -27,11 +27,11 @@ namespace SnacksApp
 
             if (string.IsNullOrEmpty(accessToken))
             {
-                MainPage = new NavigationPage(new RegisterPage(_apiService, _validator, _favoriteService));
+                MainPage = new NavigationPage(new RegisterPage(_apiService, _validator));
                 return;
             }
 
-            MainPage = new AppShell(_apiService, _validator, _favoriteService );
+            MainPage = new AppShell(_apiService, _validator );
         }
 
     }

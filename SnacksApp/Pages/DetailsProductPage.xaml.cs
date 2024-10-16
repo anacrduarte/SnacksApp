@@ -8,19 +8,18 @@ public partial class DetailsProductPage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
-    private readonly FavoriteService _favoriteService;
+    private readonly FavoriteService _favoriteService = new FavoriteService();
     private int _productId;
     private bool _loginPageDisplayed = false;
     private string? _imageUrl;
     public DetailsProductPage(int productId,
                                 string productName,
                                 ApiService apiService,
-                                IValidator validator, FavoriteService favoriteService)
+                                IValidator validator)
 	{
 		InitializeComponent();
         _apiService = apiService;
         _validator = validator;
-        _favoriteService = favoriteService;
         _productId = productId;
         Title = productName ?? "Detalhe do Produto";
     }
@@ -70,7 +69,7 @@ public partial class DetailsProductPage : ContentPage
     {
         _loginPageDisplayed = true;
 
-        await Navigation.PushAsync(new LoginPage(_apiService, _validator, _favoriteService));
+        await Navigation.PushAsync(new LoginPage(_apiService, _validator));
     }
 
     private async void ImgBtnFavorite_Clicked(object sender, EventArgs e)

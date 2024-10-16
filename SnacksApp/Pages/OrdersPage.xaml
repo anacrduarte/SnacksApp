@@ -5,7 +5,7 @@
              Title="Orders Page">
     <VerticalStackLayout>
 
-        <ActivityIndicator x:Name="loadOrdersIndicator"
+        <ActivityIndicator x:Name="loadIndicator"
                    IsRunning="false"
                    IsVisible="false"
                    Color="Blue"

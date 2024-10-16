@@ -9,16 +9,15 @@ public partial class HomePage : ContentPage
 {
     private readonly ApiService _apiService;
     private readonly IValidator _validator;
-    private readonly FavoriteService _favoriteService;
+
     private bool _loginPageDisplayed = false;
     private bool _isDataLoaded = false;
-    public HomePage(ApiService apiService, IValidator validator, FavoriteService favoriteService)
+    public HomePage(ApiService apiService, IValidator validator)
 	{
 		InitializeComponent();
         _apiService = apiService ?? throw new ArgumentNullException(nameof(apiService));
         LblNameUser.Text = "Olá, " + Preferences.Get("userName", string.Empty);
         _validator = validator;
-        _favoriteService = favoriteService;
         Title = AppConfig.titleHomePage;
 
     }
@@ -66,7 +65,7 @@ public partial class HomePage : ContentPage
             return;
 
         Navigation.PushAsync(new ListProductsPage(
-                                 currentSelection.Id, currentSelection.Name!, _apiService, _validator, _favoriteService
+                                 currentSelection.Id, currentSelection.Name!, _apiService, _validator
         ));
 
         collectionView.SelectedItem = null;
@@ -83,7 +82,7 @@ public partial class HomePage : ContentPage
         Navigation.PushAsync(new ListProductsPage(currentSelection.Id,
                                                      currentSelection.Name!,
                                                      _apiService,
-                                                     _validator, _favoriteService));
+                                                     _validator));
 
         ((CollectionView)sender).SelectedItem = null;
     }
@@ -179,7 +178,7 @@ public partial class HomePage : ContentPage
     private async Task DisplayLoginPage()
     {
         _loginPageDisplayed = true;
-        await Navigation.PushAsync(new LoginPage(_apiService, _validator, _favoriteService));
+        await Navigation.PushAsync(new LoginPage(_apiService, _validator));
     }
 
 }

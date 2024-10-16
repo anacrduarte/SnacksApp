@@ -10,7 +10,7 @@ namespace SnacksApp.Services
     public class ApiService
     {
         private readonly HttpClient _httpClient;
-        public static readonly string BaseUrl = "https://98mfdth3-7140.uks1.devtunnels.ms/";
+        //public static readonly string BaseUrl = "https://98mfdth3-7140.uks1.devtunnels.ms/";
         private readonly ILogger<ApiService> _logger;
         JsonSerializerOptions _serializerOptions;
 
@@ -102,21 +102,7 @@ namespace SnacksApp.Services
             }
         }
 
-        private async Task<HttpResponseMessage> PostRequest(string uri, HttpContent content)
-        {
-            var enderecoUrl = AppConfig.BaseUrl + uri;
-            try
-            {
-                var result = await _httpClient.PostAsync(enderecoUrl, content);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                // Log o erro ou trate conforme necessário
-                _logger.LogError($"Erro ao enviar requisição POST para {uri}: {ex.Message}");
-                return new HttpResponseMessage(HttpStatusCode.BadRequest);
-            }
-        }
+   
 
 
         public async Task<(List<Category>? Categories, string? ErrorMessage)> GetCategories()
@@ -305,6 +291,55 @@ namespace SnacksApp.Services
                 return new ApiResponse<bool> { ErrorMessage = ex.Message };
             }
         }
+
+        public async Task<(ProfileImage? ProfileImage, string? ErrorMessage)> GetProfileImageUser()
+        {
+            string endpoint = "api/user/userimage";
+            return await GetAsync<ProfileImage>(endpoint);
+        }
+
+        public async Task<ApiResponse<bool>> UploadUserImage(byte[] imageArray)
+        {
+            try
+            {
+                var content = new MultipartFormDataContent();
+                content.Add(new ByteArrayContent(imageArray), "image", "image.jpg");
+                var response = await PostRequest("api/user/uploadimage", content);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    string errorMessage = response.StatusCode == HttpStatusCode.Unauthorized
+                      ? "Unauthorized"
+                      : $"Erro ao enviar requisição HTTP: {response.StatusCode}";
+
+                    _logger.LogError($"Erro ao enviar requisição HTTP: {response.StatusCode}");
+                    return new ApiResponse<bool> { ErrorMessage = errorMessage };
+                }
+                return new ApiResponse<bool> { Data = true };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Erro ao fazer upload da imagem do usuário: {ex.Message}");
+                return new ApiResponse<bool> { ErrorMessage = ex.Message };
+            }
+        }
+
+        private async Task<HttpResponseMessage> PostRequest(string uri, HttpContent content)
+        {
+            var enderecoUrl = AppConfig.BaseUrl + uri;
+            try
+            {
+                var result = await _httpClient.PostAsync(enderecoUrl, content);
+                return result;
+            }
+            catch (Exception ex)
+            {
+                // Log o erro ou trate conforme necessário
+                _logger.LogError($"Erro ao enviar requisição POST para {uri}: {ex.Message}");
+                return new HttpResponseMessage(HttpStatusCode.BadRequest);
+            }
+        }
+
     }
 
 }
